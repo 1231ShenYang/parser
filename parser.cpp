@@ -12,7 +12,6 @@ int main( int argc, char *argv[] )
     CompHead compList;
     ModelHead modelList;
 
-  // Buffers used in parsing:
     char inName[NameLength], outName[NameLength], buf[BufLength], title[BufLength],
       buf1[BufLength], buf2[BufLength], buf3[BufLength], nameBuf[NameLength],
       *bufPtr, *charPtr1, *charPtr2;
@@ -28,36 +27,9 @@ int main( int argc, char *argv[] )
     strcpy( inName, "NOTHING" );
     strcpy( outName, "NOTHING" );
 
-  //  processing command line
-    if (argc == 1)
-    {
-        cerr << "USAGE:  parser -f FILENAME <-o OUTPUT_FILE >" << endl;
-        exit(0);
-    }
-    else
-    {
-        for(int c = 1; c < argc; ++c)
-        {
-            if( (c==1) && isalpha( *argv[c] ) ) strcpy( inName, argv[c] );
-            else if( !strcmp( argv[c], "-f" ) )
-            {
-                if( (c+1) > argc )
-                {
-                    cerr << "USAGE:  parser -f FILENAME <-o OUTPUT_FILE>" << endl;
-                    exit(0);
-                }
-                strcpy( inName, argv[c+1] );
-            }
-            else if( !strcmp( argv[c], "-o" ) )
-            {
-                if( (c+1) > argc ){
-                    cerr << "USAGE:  parser -f FILENAME <-o OUTPUT_FILE>" << endl;
-                    exit(0);
-                }
-                strcpy( outName, argv[c+1] );
-            }
-        }
-    }
+    //  读取输入和输出的文件位置
+    strcpy( inName, argv[1] );
+    strcpy( outName, argv[2] );
 
   // process input file name:
     if( !strcmp( inName, "NOTHING" ) )
@@ -138,7 +110,7 @@ int main( int argc, char *argv[] )
 
     char model_str[9];
     //  starting of parsing by creating linked list of components
-    inFile.getline(buf, BufLength);       // first line of netlist is discarded
+    inFile.getline(buf, BufLength);       // 读取标题
     inFile.getline(buf, BufLength);
     while( inFile.good() )
     {
