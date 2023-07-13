@@ -13,7 +13,7 @@ int main( int argc, char *argv[] )
     ModelHead modelList;
 
   // Buffers used in parsing:
-    char inName[NameLength], outName[NameLength], buf[BufLength],
+    char inName[NameLength], outName[NameLength], buf[BufLength], title[BufLength],
       buf1[BufLength], buf2[BufLength], buf3[BufLength], nameBuf[NameLength],
       *bufPtr, *charPtr1, *charPtr2;
     int intBuf1, intBuf2, intBuf3, intBuf4, datum=NA, eqNum=NA, specPrintJacMNA = 0;
@@ -96,10 +96,8 @@ int main( int argc, char *argv[] )
 
 
   // parsing of netlist to create linked list of models (remember to reset the fstream)
-    inFile.getline(buf, BufLength);       // first line of netlist is discarded
+    inFile.getline(title, BufLength);       // first line of netlist is discarded
     inFile.getline(buf, BufLength);
-
-
     while( inFile.good() )
     {
         if( (buf == NULL ) || (*buf == '\0') )
@@ -323,6 +321,7 @@ int main( int argc, char *argv[] )
     nodePtr = nodeList.getNode(0);
     printNodes(nodePtr, 1);
 
+    outFile << "Title: " << title << endl;
     outFile << "datum = " << datum << "          " << "lastnode = " << lastnode << endl;
     nodePtr = nodeList.getNode(0);
     while(nodePtr != NULL)
@@ -330,7 +329,7 @@ int main( int argc, char *argv[] )
         nodePtr->Myprint(outFile);
         nodePtr = nodePtr->getNext();
     }
-    cout << endl << "Finish!" << endl;
+    cout << "Finish!" << endl;
     return 0;
 }
 double stripString( char *stringIn ){
@@ -346,7 +345,7 @@ double stripString( char *stringIn ){
 //Print the linked list of components to check
 void printComponents( Component* compPtr){
     char compTypeName[6];
-    cout << endl << "Components: " << endl << endl;
+    cout << "Components: " << endl;
     while(compPtr != NULL)
     {
         strcpy(compTypeName, strComponentType(compPtr));
@@ -356,10 +355,12 @@ void printComponents( Component* compPtr){
     cout << endl;
     return;
 }
-void printNodes(Node* nodePtr, int compFlag){
+void printNodes(Node* nodePtr, int compFlag)
+{
     Connections* conPtr;
-    cout << endl << "Nodes: " << endl << endl;
-    while(nodePtr != NULL){
+    cout << "Nodes: " << endl;
+    while(nodePtr != NULL)
+    {
         if(compFlag == 0) cout << "-> " << nodePtr->getNameNum();//It is printed just the names of the nodes
         else if (compFlag == 1)
         { //It is printed the nodes and the connections

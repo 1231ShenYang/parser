@@ -1,3 +1,4 @@
+Title: * test tran
 datum = 1          lastnode = 2
 节点1        所连器件数为:2
     类型:VSource    连接端口:0    名称:VCC    value:3
