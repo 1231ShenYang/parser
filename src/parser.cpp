@@ -1,9 +1,5 @@
 #include "parser.h"
 
-double stripString( char *stringIn );
-void printComponents( Component* compPtr);
-void printNodes(Node* nodePtr, int compFlag);
-char* strComponentType(Component* compPtr);
 int main( int argc, char *argv[] )
 {
     ifstream inFile;
@@ -24,51 +20,33 @@ int main( int argc, char *argv[] )
     TranType TtypeBuf;
     EquaType eqType = Modified;
 
-    strcpy( inName, "NOTHING" );
-    strcpy( outName, "NOTHING" );
+    if(argc < 2)
+    {
+        cerr << "./run infile outfile" << endl;
+        exit(1);
+    }
 
-    //  读取输入和输出的文件位置
+    // 读取输入和输出的文件位置
     strcpy( inName, argv[1] );
     strcpy( outName, argv[2] );
 
-  // process input file name:
-    if( !strcmp( inName, "NOTHING" ) )
-    {
-        cerr << "Please enter the input Spice Netlist: <QUIT to exit>" << endl;
-        cin >> inName;
-        if( !strcmp( inName, "QUIT" ) )
-        {
-            cerr << "Program Exited Abnormally!" << endl;
-            exit(0);
-        }
-    }
+    // 设置输入文件地址
     inFile.open( inName, ios::in );
     while( !inFile )
     {
         cerr << inName << " is an invalid input file." << endl
-          << "Please enter the input Spice Netlist: <QUIT to exit>" << endl;
+          << "Please enter the input Spice Netlist" << endl;
         cin >> inName;
-        if( !strcmp( inName, "QUIT" ) )
-        {
-            cerr << "Program Exited Abnormally!" << endl;
-            exit(0);
-        }
         inFile.open( inName, ios::in );
     }
 
-  // process output file
-    if( !strcmp( outName, "NOTHING" ) )
-    {
-        strcpy( outName, inName );
-        strtok( outName, "." );
-        strcat( outName, ".Pout" );
-    }
+    // 设置输出文件地址
     outFile.open( outName, ios::out );
     cout << "Output saved to file: " << outName << endl;
 
 
-  // parsing of netlist to create linked list of models (remember to reset the fstream)
-    inFile.getline(title, BufLength);       // first line of netlist is discarded
+    // create linked list of models
+    inFile.getline(title, BufLength);       // 读取Titile
     inFile.getline(buf, BufLength);
     while( inFile.good() )
     {
@@ -106,11 +84,11 @@ int main( int argc, char *argv[] )
         inFile.getline(buf, BufLength);
     }
     inFile.close();
-    inFile.open( inName, ios::in );
 
+    // create components
+    inFile.open( inName, ios::in );
     char model_str[9];
-    //  starting of parsing by creating linked list of components
-    inFile.getline(buf, BufLength);       // 读取标题
+    inFile.getline(buf, BufLength);
     inFile.getline(buf, BufLength);
     while( inFile.good() )
     {
@@ -119,11 +97,8 @@ int main( int argc, char *argv[] )
             inFile.getline(buf, BufLength);
             continue;
         }
-
         if( isalpha( *buf ) )
         {
-      //  EDIT THIS SECTION IF NEW COMPONENTS ARE ADDED!!!
-      //  we could do some rearranging in this section to catch each type in order.
             switch( *buf )
             {
                 case 'v':
@@ -222,6 +197,7 @@ int main( int argc, char *argv[] )
         }
         inFile.getline(buf, BufLength);
     }
+    inFile.close();
 
 
 //  Now the components are created and it is time to set up the list of nodes.
@@ -275,7 +251,8 @@ int main( int argc, char *argv[] )
     }
 
 //  Loop to find the datum
-    if( datum == NA ){
+    if( datum == NA )
+    {
         nodePtr = nodeList.getNode(0);
         nodePtr1 = nodePtr->getNext();
         while( nodePtr1 != NULL )
@@ -301,72 +278,8 @@ int main( int argc, char *argv[] )
         nodePtr->Myprint(outFile);
         nodePtr = nodePtr->getNext();
     }
+
+    NodalFunc(outFile, &nodeList, &compList);
     cout << "Finish!" << endl;
     return 0;
-}
-double stripString( char *stringIn ){
-    char buf[BufLength], buf2[BufLength];
-    int a, b;
-    strcpy( buf, stringIn );
-    for( a=0; buf[a] != '='; a++ ){};
-    a++;
-    for( b=0; buf[a] != '\0'; b++, a++ ) buf2[b] = buf[a];
-    buf2[b] = '\0';
-    return atof( buf2 );
-};
-//Print the linked list of components to check
-void printComponents( Component* compPtr){
-    char compTypeName[6];
-    cout << "Components: " << endl;
-    while(compPtr != NULL)
-    {
-        strcpy(compTypeName, strComponentType(compPtr));
-        cout << "->" << compTypeName << compPtr->getcompNum();
-        compPtr = compPtr->getNext();
-    }
-    cout << endl;
-    return;
-}
-void printNodes(Node* nodePtr, int compFlag)
-{
-    Connections* conPtr;
-    cout << "Nodes: " << endl;
-    while(nodePtr != NULL)
-    {
-        if(compFlag == 0) cout << "-> " << nodePtr->getNameNum();//It is printed just the names of the nodes
-        else if (compFlag == 1)
-        { //It is printed the nodes and the connections
-            cout << "-> " << nodePtr->getNameNum() << " {";
-            conPtr = nodePtr->getConList();
-            while(conPtr->next != NULL)
-            {
-                cout << strComponentType(conPtr->comp) << conPtr->comp->getcompNum() << ", ";
-                conPtr = conPtr->next;
-            }
-            cout << strComponentType(conPtr->comp) << conPtr->comp->getcompNum() << '}' << endl;
-        }
-        else
-        {
-            cout << "Invalid value for compFlag. (0) to print just nodes, (1) to print nodes and connections!";
-            exit(1);
-        }
-        nodePtr = nodePtr->getNext();
-    }
-    return;
-}
-char* strComponentType(Component* compPtr)
-{
-    char* compTypeName = new char[6];
-    switch(compPtr->getType())
-    {
-        case VSource: strcpy(compTypeName, "V"); break;
-        case Resistor: strcpy(compTypeName, "R"); break;
-        case BJT: strcpy(compTypeName, "T"); break;
-        case MOSFET: strcpy(compTypeName, "M"); break;
-        case ISource: strcpy(compTypeName, "I"); break;
-        case Inductor: strcpy(compTypeName, "ind"); break;
-        case Diode: strcpy(compTypeName, "Diode"); break;
-        case Capacitor: strcpy(compTypeName, "Cap"); break;
-    }
-    return compTypeName;
 }

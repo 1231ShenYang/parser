@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -9,22 +10,27 @@ using namespace std;
 //  declarations:
 const double K = 1.38E-23;
 const double Q = 1.60E-19;
-char TypeName[][20] = {"MOSFET", "BJT", "VSource", "ISource", "Inductor",
-		"Resistor", "Diode", "Capacitor"};
-enum CompType { MOSFET, BJT, VSource, ISource, Inductor, Resistor, Diode, Capacitor };
-enum TranType { NMOS, PMOS, NPN, PNP };
-enum Flag { UNSET, SET };
+char CompTypeName[][20] = {"MOSFET", "BJT", "VSource", "ISource", "Inductor", "Resistor", "Diode", "Capacitor"}; //组件类型名
+enum CompType { MOSFET, BJT, VSource, ISource, Inductor, Resistor, Diode, Capacitor }; //组件类型
+char TranTypeName[][5] = {"NMOS", "PMOS", "NPN", "PNP"};
+enum TranType { NMOS, PMOS, NPN, PNP }; //三极管类型
+enum Flag { UNSET, SET }; //标志
 enum Boolean { FALSE, TRUE };
 enum EquaType{ Nodal, Modified };
 int mCount=0, bCount=0, vSCount=0, iSCount=0, rCount=0, iCount=0, dCount=0, cCount=0;
 const int NameLength=80, BufLength=300, NA=-1;
 
-class Component;
-class ComponentHead;
-class Node;
-class NodeHead;
-class Model;
-class ModelHead;
+class Component; //组件
+class ComponentHead; //组件头部
+class Node; //节点
+class NodeHead; //节点头部
+class Model; //模型
+class ModelHead; //模型头
+
+double stripString( char *stringIn );
+void printComponents( Component* compPtr);
+void printNodes(Node* nodePtr, int compFlag);
+char* strComponentType(Component* compPtr);
 
 struct Connectors
 {
@@ -37,35 +43,6 @@ struct Connections
     Connections* next;
     Component* comp; // ~> pointer to component
     int conNum;
-};
-class Component
-{
-public:
-    Component( CompType typeIn, double valueIn, double tempIn, int con0In,
-        int con1In, int con2In, int con3In, Model* modelIn, char* nameIn );
-    ~Component();
-    CompType getType();
-    int getNum();
-    Component* getNext();
-    void connect( int conNum, Node* nodeIn );
-    double getVal();
-    int getcompNum ();
-    void setNext( Component* nextIn );
-    void setNum( int numIn );
-    int getConVal( int conNum );
-    Boolean isCon( int conNum );
-
-    Node* getNode( int conNum );
-    int getNodeNum( int conNum );
-    char* getName();
-private:
-    Component* next;
-    CompType type;
-    Connectors con0, con1, con2, con3;
-    int compNum;
-    double value, temp;
-    Model* model;
-    char name[NameLength];
 };
 class Node
 {
@@ -83,9 +60,9 @@ public:
     void setNext( Node* nodeIn );
 private:
     Node* next;
-    int nodeNum, conCount;
+    int conCount; // conCount:连接的器件数
     Connections* conList;
-    int nameNum;
+    int nodeNum, nameNum; // nameNum:节点号
 };
 class NodeHead
 {
@@ -95,9 +72,40 @@ public:
     Node* addNode();
     int getCount();
     Node* getNode(int nodeNum);
+    Node* getNodeByNameNum(int namenum);
 private:
     Node* nodeList;
     int nodeCount;
+};
+class Component
+{
+public:
+    Component( CompType typeIn, double valueIn, double tempIn, int con0In,
+        int con1In, int con2In, int con3In, Model* modelIn, char* nameIn );
+    ~Component();
+    Component* getNext();
+    CompType getType();
+    Node* getNode( int conNum );
+    Boolean isCon( int conNum );
+    void connect( int conNum, Node* nodeIn );
+    double getVal();
+    int getcompNum ();
+    int getConVal( int conNum );
+    int getNum();
+    int getNodeNum( int conNum );
+    char* getName();
+    void setNext( Component* nextIn );
+    void setNum( int numIn );
+
+    bool printFunc(char *str, int conNum, int nodeNameNum, NodeHead *head);
+private:
+    Component* next;
+    CompType type;
+    Connectors con0, con1, con2, con3;
+    int compNum;
+    double value, temp;
+    Model* model;
+    char name[NameLength];
 };
 class CompHead
 {
@@ -138,6 +146,7 @@ public:
 private:
     Model* modelList;
 };
+
 Component::Component( CompType typeIn, double valueIn=NA, double tempIn=NA,
 		      int con0In=NA, int con1In=NA, int con2In=NA, int con3In=NA,
 		      Model* modelIn=NULL, char *nameIn = NULL ){
@@ -237,6 +246,41 @@ int Component::getNodeNum( int conNum )
     return -1;
 }
 char* Component::getName(){ return name; }
+bool Component::printFunc(char *str, int conNum, int nodeNameNum, NodeHead *head)
+{
+    //{ MOSFET, BJT, VSource, ISource, Inductor, Resistor, Diode, Capacitor };
+    switch(type)
+    {
+        case BJT:
+            if(conNum == 0)
+            {
+                sprintf(str, "Ic%d", compNum);
+                return true;
+            }
+            else if(conNum == 1)
+            {
+                sprintf(str, "- Ic%d - Ie%d", compNum, compNum);
+                return false;
+            }
+            else if(conNum == 2)
+            {
+                sprintf(str, "Ie%d", compNum);
+                return true;
+            }
+        case Resistor:
+            if(con0.node->getNameNum() == 0 || con1.node->getNameNum() == 0) sprintf(str, "x%d/%s", nodeNameNum, name);
+            else if(con0.node->getNameNum() == nodeNameNum) sprintf(str, "(x%d - x%d)/%s", nodeNameNum, con1.node->getNameNum(), name);
+            else sprintf(str, "(x%d - x%d)/%s", nodeNameNum, con0.node->getNameNum(), name);
+            return true;
+        case VSource:
+            if(con0.node->getNameNum() == 0 || con1.node->getNameNum() == 0) sprintf(str, "x%d - %s", nodeNameNum, name);
+            else if(con0.node->getNameNum() == nodeNameNum) sprintf(str, "x%d - x%d - %s", nodeNameNum, con1.node->getNameNum(),name);
+            else sprintf(str, "- x%d", head->getCount() - 1 + compNum);
+            return true;
+    }
+    return false;
+}
+
 Node::Node( int Num )
 {
     next = NULL;
@@ -281,11 +325,13 @@ void Node::Myprint(ofstream &outFile)
     Connections* root = conList;
     while(root != NULL)
     {
-       outFile << "    类型:" << TypeName[root->comp->getType()] << "    连接端口:" << root->conNum <<
-          "    名称:" << root->comp->getName() << "    value:" << root->comp->getVal() << endl;
+       outFile << "    类型:" << CompTypeName[root->comp->getType()] << "    连接端口:" << root->conNum <<
+          "    名称:" << root->comp->getName() << "    编号:" << root->comp->getcompNum()<<
+          "    value:" << root->comp->getVal() << endl;
        root = root->next;
     }
 }
+
 NodeHead::NodeHead()
 {
     nodeList = NULL;
@@ -300,14 +346,14 @@ Node* NodeHead::addNode()
     {
         nodeList = new Node(nodeCount);
         return nodeList;
-		}
-	  else
+	}
+	else
     {
         nodePtr = nodeList;
         while( nodePtr->getNext() != NULL ) nodePtr = nodePtr->getNext();
         nodePtr->setNext( new Node(nodeCount) );
         return nodePtr->getNext();
-		}
+	}
 }
 int NodeHead::getCount(){ return nodeCount; }
 Node* NodeHead::getNode( int nodeNum )
@@ -317,6 +363,18 @@ Node* NodeHead::getNode( int nodeNum )
     for( int a=0; a < nodeNum; a++ ) nodePtr = nodePtr->getNext();
     return nodePtr;
 }
+Node* NodeHead::getNodeByNameNum(int namenum)
+{
+    Node* nodePtr = NULL;
+    nodePtr = nodeList;
+    while(nodePtr != NULL)
+    {
+        if(nodePtr->getNameNum() == namenum) break;
+        nodePtr = nodePtr->getNext();
+    }
+    return nodePtr;
+}
+
 CompHead::CompHead()
 {
     compList = NULL;
@@ -332,8 +390,8 @@ CompHead::CompHead()
 CompHead::~CompHead(){};
 void CompHead::addComp( Component* component )
 {
-	  Component* compPtr;
-	  switch ( component->getType() )
+	Component* compPtr;
+    switch ( component->getType() )
     {
         case ISource:
             iSCount++;
@@ -495,6 +553,7 @@ Component* CompHead::getComp( int compNum )
     for( int a=0; a<compNum; a++ ) compPtr = compPtr->getNext();
     return compPtr;
 }
+
 Model::Model( char* nameIn, TranType typeIn, double isIn, double bfIn,
 	      double brIn, double tempIn )
 {
@@ -531,4 +590,137 @@ Model* ModelHead::getModel ( char* nameIn )
     Model* modelPtr = modelList;
     while( strcmp( modelPtr->getName(), nameIn ) ) modelPtr = modelPtr->getNext();
     return modelPtr;
+}
+
+double stripString( char *stringIn ){
+    char buf[BufLength], buf2[BufLength];
+    int a, b;
+    strcpy( buf, stringIn );
+    for( a=0; buf[a] != '='; a++ ){};
+    a++;
+    for( b=0; buf[a] != '\0'; b++, a++ ) buf2[b] = buf[a];
+    buf2[b] = '\0';
+    return atof( buf2 );
+};
+//Print the linked list of components to check
+void printComponents( Component* compPtr){
+    char compTypeName[6];
+    cout << "Components: " << endl;
+    while(compPtr != NULL)
+    {
+        strcpy(compTypeName, strComponentType(compPtr));
+        cout << "->" << compTypeName << compPtr->getcompNum();
+        compPtr = compPtr->getNext();
+    }
+    cout << endl;
+    return;
+}
+void printNodes(Node* nodePtr, int compFlag)
+{
+    Connections* conPtr;
+    cout << "Nodes: " << endl;
+    while(nodePtr != NULL)
+    {
+        if(compFlag == 0) cout << "-> " << nodePtr->getNameNum();//It is printed just the names of the nodes
+        else if (compFlag == 1)
+        { //It is printed the nodes and the connections
+            cout << "-> " << nodePtr->getNameNum() << " {";
+            conPtr = nodePtr->getConList();
+            while(conPtr->next != NULL)
+            {
+                cout << strComponentType(conPtr->comp) << conPtr->comp->getcompNum() << ", ";
+                conPtr = conPtr->next;
+            }
+            cout << strComponentType(conPtr->comp) << conPtr->comp->getcompNum() << '}' << endl;
+        }
+        else
+        {
+            cout << "Invalid value for compFlag. (0) to print just nodes, (1) to print nodes and connections!";
+            exit(1);
+        }
+        nodePtr = nodePtr->getNext();
+    }
+    return;
+}
+char* strComponentType(Component* compPtr)
+{
+    char* compTypeName = new char[6];
+    switch(compPtr->getType())
+    {
+        case VSource: strcpy(compTypeName, "V"); break;
+        case Resistor: strcpy(compTypeName, "R"); break;
+        case BJT: strcpy(compTypeName, "T"); break;
+        case MOSFET: strcpy(compTypeName, "M"); break;
+        case ISource: strcpy(compTypeName, "I"); break;
+        case Inductor: strcpy(compTypeName, "ind"); break;
+        case Diode: strcpy(compTypeName, "Diode"); break;
+        case Capacitor: strcpy(compTypeName, "Cap"); break;
+    }
+    return compTypeName;
+}
+
+void ModifiedNodalFunc(ofstream &outFile, NodeHead *head1, CompHead *head2)
+{
+    Component *comp = head2->getComp(0);
+    Node *p;
+    Connections* root, *temp;
+    char str[1000];
+    bool flag;
+    while(comp != NULL)
+    {
+        if(comp->getType() == VSource)
+        {
+            outFile << "F(" << head1->getCount() - 1 + comp->getcompNum() << ") = x" <<
+                head1->getCount() - 1 + comp->getcompNum() << " ";
+            p = comp->getNode(0);
+            root = p->getConList();
+            for(int a = 0; a < p->getCount(); ++a)
+            {
+                if(root->comp->getType() == VSource) continue;
+                if(root->comp->printFunc(str, root->conNum, p->getNameNum(), head1)) outFile << " + ";
+                outFile << str;
+                root = root->next;
+                strcpy(str, "");
+            }
+            outFile << endl;
+        }
+        comp = comp->getNext();
+    }
+}
+void NodalFunc(ofstream &outFile, NodeHead *head1, CompHead *head2)
+{
+    Node *p;
+    Connections* root;
+    char str[1000];
+    bool flag;
+    outFile << endl << "Functions:" << endl;
+    for(int a = 1; a < head1->getCount(); ++a)
+    {
+        flag = false;
+        p = head1->getNodeByNameNum(a);
+        root = p->getConList();
+        outFile << "F(" << a << ") = ";
+        for(int b = 0; b < p->getCount(); ++b)
+        {
+            if(root->comp->getType() == VSource && root->comp->getNode(0)->getNameNum() == p->getNameNum())
+            {
+                root->comp->printFunc(str, root->conNum, p->getNameNum(), head1);
+                flag = true;
+                outFile << str << endl;
+                break;
+            }
+            root = root->next;
+        }
+        if(flag) continue;
+        root = p->getConList();
+        for(int b = 0; b < p->getCount(); ++b)
+        {
+            if(root->comp->printFunc(str, root->conNum, p->getNameNum(), head1) && b != 0) outFile << " + ";
+            outFile << str;
+            root = root->next;
+            strcpy(str, "");
+        }
+        outFile << endl;
+    }
+    ModifiedNodalFunc(outFile, head1, head2);
 }

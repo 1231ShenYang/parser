@@ -1,0 +1,3 @@
+/project/parser/CMakeFiles/parser.dir
+/project/parser/CMakeFiles/edit_cache.dir
+/project/parser/CMakeFiles/rebuild_cache.dir
