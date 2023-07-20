@@ -259,7 +259,7 @@ bool Component::printFunc(char *str, int conNum, int nodeNameNum, NodeHead *head
             }
             else if(conNum == 1)
             {
-                sprintf(str, "- Ic%d - Ie%d", compNum, compNum);
+                sprintf(str, " - Ic%d - Ie%d", compNum, compNum);
                 return false;
             }
             else if(conNum == 2)
@@ -275,7 +275,11 @@ bool Component::printFunc(char *str, int conNum, int nodeNameNum, NodeHead *head
         case VSource:
             if(con0.node->getNameNum() == 0 || con1.node->getNameNum() == 0) sprintf(str, "x%d - %s", nodeNameNum, name);
             else if(con0.node->getNameNum() == nodeNameNum) sprintf(str, "x%d - x%d - %s", nodeNameNum, con1.node->getNameNum(),name);
-            else sprintf(str, "- x%d", head->getCount() - 1 + compNum);
+            else
+            {
+                sprintf(str, " - x%d", head->getCount() - 1 + compNum);
+                return false;
+            }
             return true;
     }
     return false;
@@ -676,9 +680,11 @@ void ModifiedNodalFunc(ofstream &outFile, NodeHead *head1, CompHead *head2)
             root = p->getConList();
             for(int a = 0; a < p->getCount(); ++a)
             {
-                if(root->comp->getType() == VSource) continue;
-                if(root->comp->printFunc(str, root->conNum, p->getNameNum(), head1)) outFile << " + ";
-                outFile << str;
+                if(root->comp->getType() != VSource)
+                {
+                    if(root->comp->printFunc(str, root->conNum, p->getNameNum(), head1)) outFile << " + ";
+                    outFile << str;
+                }
                 root = root->next;
                 strcpy(str, "");
             }
