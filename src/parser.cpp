@@ -8,11 +8,12 @@ int main( int argc, char *argv[] )
     CompHead compList;
     ModelHead modelList;
 
+    bool flag;
     char inName[NameLength], outName[NameLength], buf[BufLength], title[BufLength],
       buf1[BufLength], buf2[BufLength], buf3[BufLength], nameBuf[NameLength],
       *bufPtr, *charPtr1, *charPtr2;
     int intBuf1, intBuf2, intBuf3, intBuf4, datum=NA, eqNum=NA, specPrintJacMNA = 0;
-    double douBuf1, douBuf2, douBuf3, douBuf4;
+    double douBuf1, douBuf2, douBuf3, douBuf4, douBuf5;
     CompType typeBuf;
     Component *compPtr, *compPtr1, *compPtr2;
     Node *nodePtr, *nodePtr1, *nodePtr2;
@@ -58,6 +59,7 @@ int main( int argc, char *argv[] )
         strcpy( buf1, buf );
         if( !strcmp( strtok( buf1, " " ), ".model" ) )
         {
+            flag = false;
             strcpy( buf2, strtok( NULL, " " ) );
             charPtr1 = strtok( NULL, " " );
             if( !strcmp( charPtr1, "PNP" ) ) TtypeBuf = PNP;
@@ -74,11 +76,21 @@ int main( int argc, char *argv[] )
                     douBuf2 = stripString( charPtr1 );
                 if( (charPtr1[0] == 'B') && (charPtr1[1] == 'R') && (charPtr1[2] == '=') )
                     douBuf3 = stripString( charPtr1 );
-                if( (charPtr1[0] == 'T') && (charPtr1[1] == 'E') && (charPtr1[4] == '=') )
+                if( (charPtr1[0] == 'T') && (charPtr1[1] == 'E') && (charPtr1[2] == '=') && !flag)
+                {
                     douBuf4 = stripString( charPtr1 );
+                    douBuf5 = Q / (K * douBuf4);
+                    flag = true;
+                }
+                if( (charPtr1[0] == 'N') && (charPtr1[1] == '=') && !flag)
+                {
+                    douBuf5 = stripString( charPtr1 );
+                    douBuf4 = Q / (K * douBuf5);
+                    flag = true;
+                }
                 charPtr1 = strtok( NULL, " " );
             }
-            modelPtr = new Model( buf2, TtypeBuf, douBuf1, douBuf2, douBuf3, douBuf4 );
+            modelPtr = new Model( buf2, TtypeBuf, douBuf1, douBuf2, douBuf3, douBuf4, douBuf5);
             modelList.addModel( modelPtr );
         }
         inFile.getline(buf, BufLength);
@@ -262,24 +274,31 @@ int main( int argc, char *argv[] )
         }
         datum = nodePtr->getNameNum();
     }
-//=================================
-//~> Checking the component list
-//~> Comment this part to omit
+
     compPtr = compList.getComp(0);
-    printComponents(compPtr);
+    printComponents(compPtr); // 打印器件
     nodePtr = nodeList.getNode(0);
-    printNodes(nodePtr, 1);
+    printNodes(nodePtr, 1);   // 打印节点
 
     outFile << "Title: " << title << endl;
     outFile << "datum = " << datum << "          " << "lastnode = " << lastnode << endl;
+
+    outFile << endl << "器件值:" << endl;
+    compPtr = compList.getComp(0);
+    while(compPtr != NULL)
+    {
+        compPtr->printValue(outFile);
+        compPtr = compPtr->getNext();
+    }
+    outFile << endl << "节点信息:" << endl;
     nodePtr = nodeList.getNode(0);
     while(nodePtr != NULL)
     {
-        nodePtr->Myprint(outFile);
+        nodePtr->Myprint(outFile); // 输出节点与器件连接关系
         nodePtr = nodePtr->getNext();
     }
-
     NodalFunc(outFile, &nodeList, &compList);
+    Destroy(&nodeList, &compList, &modelList);
     cout << "Finish!" << endl;
     return 0;
 }

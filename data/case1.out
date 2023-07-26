@@ -1,5 +1,15 @@
 Title: * Schmitt Trigger circuit no. 1
 datum = 1          lastnode = 6
+器件值:
+q1: IS = 1e-16 BF = 100 BR = 1 TE = -298.966 N = -38.781
+q2: IS = 1e-16 BF = 100 BR = 1 TE = -298.966 N = -38.781
+rc1 = 2000
+rc2 = 1000
+r3 = 10000
+re = 100
+vcc = 10
+vin = 1.5
+节点信息:
 节点1        所连器件数为:3
     类型:BJT    连接端口:0    名称:q1    编号:1    value:-1
     类型:Resistor    连接端口:1    名称:rc1    编号:1    value:2000

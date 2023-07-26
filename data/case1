@@ -1,5 +1,5 @@
 * Schmitt Trigger circuit no. 1
-.model nbjt NPN IS=1e-16 BF=100 BR=1
+.model nbjt NPN IS=1e-16 BF=100 BR=1 N=-38.781
 q1 1 5 2 nbjt
 q2 3 4 2 nbjt
 rc1 6 1 2e3

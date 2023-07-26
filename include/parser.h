@@ -98,6 +98,8 @@ public:
     void setNum( int numIn );
 
     bool printFunc(char *str, int conNum, int nodeNameNum, NodeHead *head);
+    void printValue(ofstream &outFile);
+    Model *getModel(){return model;}
 private:
     Component* next;
     CompType type;
@@ -123,17 +125,19 @@ class Model
 {
 public:
     Model( char* nameIn, TranType typeIn, double isIn, double bfIn, double brIn, double tempIn );
+    Model( char* nameIn, TranType typeIn, double isIn, double bfIn, double brIn, double tempIn, double nIn);
     char* getName();
     TranType getType();
     double getIs();
     double getBf();
     double getBr();
     double getTemp();
+    double getN(){return n;}
     void setNext( Model* nextIn );
     Model* getNext();
 private:
     char name[NameLength];
-    double is, bf, br, temp;
+    double is, bf, br, temp, n;
     Model* next;
     TranType type;
 };
@@ -143,6 +147,8 @@ public:
     ModelHead();
     void addModel( Model* modelIn );
     Model* getModel ( char* nameIn );
+
+    Model* getModelList(){return modelList;}
 private:
     Model* modelList;
 };
@@ -284,6 +290,29 @@ bool Component::printFunc(char *str, int conNum, int nodeNameNum, NodeHead *head
     }
     return false;
 }
+void Component::printValue(ofstream &outFile)
+{
+    // MOSFET, BJT, VSource, ISource, Inductor, Resistor, Diode, Capacitor 
+    switch(type)
+    {
+        case Resistor:
+            outFile << name << " = " << value << endl;
+            break;
+        case VSource:
+            outFile << name << " = " << value << endl;
+            break;
+        case ISource:
+            outFile << name << " = " << value << endl;
+            break;
+        case BJT:
+            outFile << name << ": IS = " << model->getIs()
+                << " BF = " << model->getBf()
+                << " BR = " << model->getBr()
+                << " TE = "  << model->getTemp()
+                << " N = "  << model->getN() << endl;
+            break;
+    }
+}
 
 Node::Node( int Num )
 {
@@ -362,8 +391,7 @@ Node* NodeHead::addNode()
 int NodeHead::getCount(){ return nodeCount; }
 Node* NodeHead::getNode( int nodeNum )
 {
-    Node* nodePtr;
-    nodePtr = nodeList;
+    Node* nodePtr = nodeList;
     for( int a=0; a < nodeNum; a++ ) nodePtr = nodePtr->getNext();
     return nodePtr;
 }
@@ -567,6 +595,19 @@ Model::Model( char* nameIn, TranType typeIn, double isIn, double bfIn,
     bf = bfIn;
     br = brIn;
     temp = tempIn;
+    n = NA;
+    next = NULL;
+}
+Model::Model( char* nameIn, TranType typeIn, double isIn, double bfIn,
+	      double brIn, double tempIn, double nIn)
+{
+    strcpy( name, nameIn );
+    type = typeIn;
+    is = isIn;
+    bf = bfIn;
+    br = brIn;
+    temp = tempIn;
+    n = nIn;
     next = NULL;
 }
 TranType Model::getType(){ return type; }
@@ -596,17 +637,17 @@ Model* ModelHead::getModel ( char* nameIn )
     return modelPtr;
 }
 
-double stripString( char *stringIn ){
+double stripString( char *stringIn )
+{
     char buf[BufLength], buf2[BufLength];
     int a, b;
     strcpy( buf, stringIn );
-    for( a=0; buf[a] != '='; a++ ){};
+    for(a = 0; buf[a] != '='; a++){};
     a++;
     for( b=0; buf[a] != '\0'; b++, a++ ) buf2[b] = buf[a];
     buf2[b] = '\0';
     return atof( buf2 );
 };
-//Print the linked list of components to check
 void printComponents( Component* compPtr){
     char compTypeName[6];
     cout << "Components: " << endl;
@@ -730,3 +771,28 @@ void NodalFunc(ofstream &outFile, NodeHead *head1, CompHead *head2)
     }
     ModifiedNodalFunc(outFile, head1, head2);
 }
+void Destroy(NodeHead *head1, CompHead *head2, ModelHead *head3)
+{
+    Node *p1 = head1->getNode(0), *p2 = NULL;
+    Component *p3 = head2->getComp(0), *p4 = NULL;
+    Model *p5 = head3->getModelList(), *p6 = NULL;
+    while(p1 != NULL)
+    {
+        p2 = p1->getNext();
+        delete p1;
+        p1 = p2;
+    }
+    while(p3 != NULL)
+    {
+        p4 = p3->getNext();
+        delete p3;
+        p3 = p4;
+    }
+    while(p5 != NULL)
+    {
+        p6 = p5->getNext();
+        delete p5;
+        p5 = p6;
+    }
+}
+
