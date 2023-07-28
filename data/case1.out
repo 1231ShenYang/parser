@@ -1,5 +1,6 @@
 Title: * Schmitt Trigger circuit no. 1
 datum = 1          lastnode = 6
+
 器件值:
 q1: IS = 1e-16 BF = 100 BR = 1 TE = -298.966 N = -38.781
 q2: IS = 1e-16 BF = 100 BR = 1 TE = -298.966 N = -38.781
@@ -9,32 +10,29 @@ r3 = 10000
 re = 100
 vcc = 10
 vin = 1.5
+
 节点信息:
 节点1        所连器件数为:3
-    类型:BJT    连接端口:0    名称:q1    编号:1    value:-1
+    类型:BJT    连接端口:0    名称:q1    编号:1    value:0
     类型:Resistor    连接端口:1    名称:rc1    编号:1    value:2000
     类型:Resistor    连接端口:0    名称:r3    编号:3    value:10000
-节点5        所连器件数为:2
-    类型:BJT    连接端口:1    名称:q1    编号:1    value:-1
-    类型:VSource    连接端口:0    名称:vin    编号:2    value:1.5
 节点2        所连器件数为:3
-    类型:BJT    连接端口:2    名称:q1    编号:1    value:-1
-    类型:BJT    连接端口:2    名称:q2    编号:2    value:-1
+    类型:BJT    连接端口:2    名称:q1    编号:1    value:0
+    类型:BJT    连接端口:2    名称:q2    编号:2    value:0
     类型:Resistor    连接端口:0    名称:re    编号:4    value:100
 节点3        所连器件数为:2
-    类型:BJT    连接端口:0    名称:q2    编号:2    value:-1
+    类型:BJT    连接端口:0    名称:q2    编号:2    value:0
     类型:Resistor    连接端口:1    名称:rc2    编号:2    value:1000
 节点4        所连器件数为:2
-    类型:BJT    连接端口:1    名称:q2    编号:2    value:-1
+    类型:BJT    连接端口:1    名称:q2    编号:2    value:0
     类型:Resistor    连接端口:1    名称:r3    编号:3    value:10000
+节点5        所连器件数为:2
+    类型:BJT    连接端口:1    名称:q1    编号:1    value:0
+    类型:VSource    连接端口:0    名称:vin    编号:2    value:1.5
 节点6        所连器件数为:3
     类型:Resistor    连接端口:0    名称:rc1    编号:1    value:2000
     类型:Resistor    连接端口:0    名称:rc2    编号:2    value:1000
     类型:VSource    连接端口:0    名称:vcc    编号:1    value:10
-节点0        所连器件数为:3
-    类型:Resistor    连接端口:1    名称:re    编号:4    value:100
-    类型:VSource    连接端口:1    名称:vcc    编号:1    value:10
-    类型:VSource    连接端口:1    名称:vin    编号:2    value:1.5
 
 Functions:
 F(1) = Ic1 + (x1 - x6)/rc1 + (x1 - x4)/r3

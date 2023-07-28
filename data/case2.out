@@ -1,34 +1,43 @@
 Title: * Schmitt Trigger circuit no. 2
 datum = 6          lastnode = 6
+
+器件值:
+q1: IS = 1e-16 BF = 100 BR = 1 TE = 6.95295e-310 N = 0
+q2: IS = 1e-16 BF = 100 BR = 1 TE = 6.95295e-310 N = 0
+rc1 = 1500
+rc2 = 1000
+r1 = 10000
+re = 100
+r2 = 5000
+r3 = 1250
+r4 = 1e+06
+vcc = 10
+
+节点信息:
+节点1        所连器件数为:3
+    类型:BJT    连接端口:2    名称:q1    编号:1    value:0
+    类型:BJT    连接端口:2    名称:q2    编号:2    value:0
+    类型:Resistor    连接端口:0    名称:re    编号:4    value:100
 节点2        所连器件数为:3
-    类型:BJT    连接端口:0    名称:q1    编号:1    value:-1
+    类型:BJT    连接端口:0    名称:q1    编号:1    value:0
     类型:Resistor    连接端口:1    名称:rc1    编号:1    value:1500
     类型:Resistor    连接端口:0    名称:r1    编号:3    value:10000
-节点5        所连器件数为:3
-    类型:BJT    连接端口:1    名称:q1    编号:1    value:-1
-    类型:Resistor    连接端口:0    名称:r2    编号:5    value:5000
-    类型:Resistor    连接端口:0    名称:r3    编号:6    value:1250
-节点1        所连器件数为:3
-    类型:BJT    连接端口:2    名称:q1    编号:1    value:-1
-    类型:BJT    连接端口:2    名称:q2    编号:2    value:-1
-    类型:Resistor    连接端口:0    名称:re    编号:4    value:100
 节点3        所连器件数为:2
-    类型:BJT    连接端口:0    名称:q2    编号:2    value:-1
+    类型:BJT    连接端口:0    名称:q2    编号:2    value:0
     类型:Resistor    连接端口:1    名称:rc2    编号:2    value:1000
 节点4        所连器件数为:3
-    类型:BJT    连接端口:1    名称:q2    编号:2    value:-1
+    类型:BJT    连接端口:1    名称:q2    编号:2    value:0
     类型:Resistor    连接端口:1    名称:r1    编号:3    value:10000
     类型:Resistor    连接端口:0    名称:r4    编号:7    value:1e+06
+节点5        所连器件数为:3
+    类型:BJT    连接端口:1    名称:q1    编号:1    value:0
+    类型:Resistor    连接端口:0    名称:r2    编号:5    value:5000
+    类型:Resistor    连接端口:0    名称:r3    编号:6    value:1250
 节点6        所连器件数为:4
     类型:Resistor    连接端口:0    名称:rc1    编号:1    value:1500
     类型:Resistor    连接端口:0    名称:rc2    编号:2    value:1000
     类型:Resistor    连接端口:1    名称:r2    编号:5    value:5000
     类型:VSource    连接端口:0    名称:vcc    编号:1    value:10
-节点0        所连器件数为:4
-    类型:Resistor    连接端口:1    名称:re    编号:4    value:100
-    类型:Resistor    连接端口:1    名称:r3    编号:6    value:1250
-    类型:Resistor    连接端口:1    名称:r4    编号:7    value:1e+06
-    类型:VSource    连接端口:1    名称:vcc    编号:1    value:10
 
 Functions:
 F(1) = Ie1 + Ie2 + x1/re

@@ -1,32 +1,39 @@
 Title: * Chua Circuit
-datum = 0          lastnode = 14
-节点13        所连器件数为:3
-    类型:VSource    连接端口:0    名称:VCC1    编号:1    value:12
-    类型:Resistor    连接端口:1    名称:R2    编号:2    value:4000
-    类型:Resistor    连接端口:0    名称:R11    编号:11    value:4000
-节点0        所连器件数为:7
-    类型:VSource    连接端口:1    名称:VCC1    编号:1    value:12
-    类型:VSource    连接端口:1    名称:VCC2    编号:2    value:12
-    类型:Resistor    连接端口:1    名称:R4    编号:4    value:5000
-    类型:Resistor    连接端口:1    名称:R6    编号:6    value:500
-    类型:Resistor    连接端口:1    名称:R7    编号:7    value:500
-    类型:Resistor    连接端口:1    名称:R9    编号:9    value:10100
-    类型:Resistor    连接端口:1    名称:R10    编号:10    value:10100
-节点14        所连器件数为:3
-    类型:VSource    连接端口:0    名称:VCC2    编号:2    value:12
-    类型:Resistor    连接端口:1    名称:R3    编号:3    value:4000
-    类型:Resistor    连接端口:0    名称:R12    编号:12    value:4000
+datum = 1          lastnode = 14
+
+器件值:
+VCC1 = 12
+VCC2 = 12
+V1 = 10
+V2 = 2
+R1 = 10000
+R2 = 4000
+R3 = 4000
+R4 = 5000
+R5 = 30000
+R6 = 500
+R7 = 500
+R8 = 30000
+R9 = 10100
+R10 = 10100
+R11 = 4000
+R12 = 4000
+R13 = 30000
+R14 = 30000
+Q1: IS = 1e-09 BF = 100 BR = 1 TE = 6.95291e-310 N = 0
+Q2: IS = 1e-09 BF = 100 BR = 1 TE = 6.95291e-310 N = 0
+Q3: IS = 1e-09 BF = 100 BR = 1 TE = 6.95291e-310 N = 0
+Q4: IS = 1e-09 BF = 100 BR = 1 TE = 6.95291e-310 N = 0
+
+节点信息:
 节点1        所连器件数为:4
     类型:VSource    连接端口:0    名称:V1    编号:3    value:10
     类型:Resistor    连接端口:0    名称:R4    编号:4    value:5000
-    类型:BJT    连接端口:1    名称:Q1    编号:1    value:-1
-    类型:BJT    连接端口:1    名称:Q3    编号:3    value:-1
+    类型:BJT    连接端口:1    名称:Q1    编号:1    value:0
+    类型:BJT    连接端口:1    名称:Q3    编号:3    value:0
 节点2        所连器件数为:2
     类型:VSource    连接端口:1    名称:V1    编号:3    value:10
     类型:Resistor    连接端口:0    名称:R1    编号:1    value:10000
-节点11        所连器件数为:2
-    类型:VSource    连接端口:0    名称:V2    编号:4    value:2
-    类型:Resistor    连接端口:1    名称:R14    编号:14    value:30000
 节点3        所连器件数为:3
     类型:VSource    连接端口:1    名称:V2    编号:4    value:2
     类型:Resistor    连接端口:1    名称:R1    编号:1    value:10000
@@ -34,35 +41,46 @@ datum = 0          lastnode = 14
 节点4        所连器件数为:3
     类型:Resistor    连接端口:0    名称:R2    编号:2    value:4000
     类型:Resistor    连接端口:0    名称:R5    编号:5    value:30000
-    类型:BJT    连接端口:0    名称:Q1    编号:1    value:-1
+    类型:BJT    连接端口:0    名称:Q1    编号:1    value:0
 节点5        所连器件数为:3
     类型:Resistor    连接端口:0    名称:R3    编号:3    value:4000
     类型:Resistor    连接端口:0    名称:R8    编号:8    value:30000
-    类型:BJT    连接端口:0    名称:Q3    编号:3    value:-1
+    类型:BJT    连接端口:0    名称:Q3    编号:3    value:0
 节点6        所连器件数为:3
     类型:Resistor    连接端口:1    名称:R5    编号:5    value:30000
     类型:Resistor    连接端口:0    名称:R9    编号:9    value:10100
-    类型:BJT    连接端口:1    名称:Q2    编号:2    value:-1
-节点8        所连器件数为:3
-    类型:Resistor    连接端口:0    名称:R6    编号:6    value:500
-    类型:BJT    连接端口:2    名称:Q1    编号:1    value:-1
-    类型:BJT    连接端口:2    名称:Q2    编号:2    value:-1
-节点9        所连器件数为:3
-    类型:Resistor    连接端口:0    名称:R7    编号:7    value:500
-    类型:BJT    连接端口:2    名称:Q3    编号:3    value:-1
-    类型:BJT    连接端口:2    名称:Q4    编号:4    value:-1
+    类型:BJT    连接端口:1    名称:Q2    编号:2    value:0
 节点7        所连器件数为:3
     类型:Resistor    连接端口:1    名称:R8    编号:8    value:30000
     类型:Resistor    连接端口:0    名称:R10    编号:10    value:10100
-    类型:BJT    连接端口:1    名称:Q4    编号:4    value:-1
+    类型:BJT    连接端口:1    名称:Q4    编号:4    value:0
+节点8        所连器件数为:3
+    类型:Resistor    连接端口:0    名称:R6    编号:6    value:500
+    类型:BJT    连接端口:2    名称:Q1    编号:1    value:0
+    类型:BJT    连接端口:2    名称:Q2    编号:2    value:0
+节点9        所连器件数为:3
+    类型:Resistor    连接端口:0    名称:R7    编号:7    value:500
+    类型:BJT    连接端口:2    名称:Q3    编号:3    value:0
+    类型:BJT    连接端口:2    名称:Q4    编号:4    value:0
 节点10        所连器件数为:3
     类型:Resistor    连接端口:1    名称:R11    编号:11    value:4000
     类型:Resistor    连接端口:0    名称:R13    编号:13    value:30000
-    类型:BJT    连接端口:0    名称:Q2    编号:2    value:-1
+    类型:BJT    连接端口:0    名称:Q2    编号:2    value:0
+节点11        所连器件数为:2
+    类型:VSource    连接端口:0    名称:V2    编号:4    value:2
+    类型:Resistor    连接端口:1    名称:R14    编号:14    value:30000
 节点12        所连器件数为:3
     类型:Resistor    连接端口:1    名称:R12    编号:12    value:4000
     类型:Resistor    连接端口:0    名称:R14    编号:14    value:30000
-    类型:BJT    连接端口:0    名称:Q4    编号:4    value:-1
+    类型:BJT    连接端口:0    名称:Q4    编号:4    value:0
+节点13        所连器件数为:3
+    类型:VSource    连接端口:0    名称:VCC1    编号:1    value:12
+    类型:Resistor    连接端口:1    名称:R2    编号:2    value:4000
+    类型:Resistor    连接端口:0    名称:R11    编号:11    value:4000
+节点14        所连器件数为:3
+    类型:VSource    连接端口:0    名称:VCC2    编号:2    value:12
+    类型:Resistor    连接端口:1    名称:R3    编号:3    value:4000
+    类型:Resistor    连接端口:0    名称:R12    编号:12    value:4000
 
 Functions:
 F(1) = x1 - x2 - V1
