@@ -24,11 +24,11 @@ int main( int argc, char *argv[] )
     strcpy(inName, argv[1]);
     strcpy(outName, argv[2]);
 
-    Init(); // 初始化
+    Init1(); // 初始化
 
     // 设置输入文件地址
     inFile.open( inName, ios::in );
-    while( !inFile )
+    if(!inFile.is_open())
     {
         cerr << inName << " is an invalid input file" << endl;
         exit(1);
@@ -245,10 +245,21 @@ int main( int argc, char *argv[] )
     outFile << "datum = " << datum << "          " << "lastnode = " << nodeCount - Counts[VSource][0] - 1 << endl;
 
     outFile << endl << "器件值:" << endl;
-    for(unsigned a = 0; a < componentCount; ++a) components[a].printValue(outFile);
+    for(unsigned a = 0; a < componentCount; ++a) components[a].printNodeValue(outFile);
     outFile << endl << "节点信息:" << endl;
     for(unsigned a = 1; a < nodeCount - Counts[VSource][0]; ++a) nodes[a].Myprint1(outFile);
-    NodalFunc(outFile);
+    outFile << endl << "BJT Ic and Ie:" << endl;
+    for(unsigned a = 1; a <= Counts[BJT][0]; ++a) 
+    {
+        models[components[Counts[BJT][a]].model].getNodalIeFunc(buf1, Counts[BJT][a]);
+        outFile << "Ie" << a << " = " << buf1 << endl;
+        models[components[Counts[BJT][a]].model].getNodalIcFunc(buf1, Counts[BJT][a]);
+        outFile << "Ic" << a << " = " << buf1 << endl;
+    }
+    outFile << endl << "Functions:" << endl;
+    for(unsigned a = 1; a < nodeCount; ++a) nodes[a].printNodalFunc(outFile);
+    outFile << endl << "Jacobian:" << endl;
+    for(unsigned a = 1; a < nodeCount; ++a) nodes[a].printJacobiFunc(outFile);
     outFile.close();
     Destroy();
     free(nodeTempNum);
