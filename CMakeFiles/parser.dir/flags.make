@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/project/parser/./include
 
-CXX_FLAGS = -std=c++20 -O3 -fopenmp
+CXX_FLAGS =  -fopenmp -std=c++20 -O3 -fopenmp
 

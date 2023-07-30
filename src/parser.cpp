@@ -260,6 +260,7 @@ int main( int argc, char *argv[] )
     for(unsigned a = 1; a < nodeCount; ++a) nodes[a].printNodalFunc(outFile);
     outFile << endl << "Jacobian:" << endl;
     for(unsigned a = 1; a < nodeCount; ++a) nodes[a].printJacobiFunc(outFile);
+    solve(outFile);
     outFile.close();
     Destroy();
     free(nodeTempNum);

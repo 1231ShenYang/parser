@@ -2,8 +2,8 @@ Title: * Schmitt Trigger circuit no. 1
 datum = 1          lastnode = 6
 
 器件值:
-q1: IS = 1e-16 BF = 100 BR = 1 TE = -299.232 N = -38.781
-q2: IS = 1e-16 BF = 100 BR = 1 TE = -299.232 N = -38.781
+q1: IS = 1e-16 BF = 99 BR = 1 TE = 299.232 N = 38.781
+q2: IS = 1e-16 BF = 99 BR = 1 TE = 299.232 N = 38.781
 rc1 = 2000
 rc2 = 1000
 r3 = 10000
@@ -115,3 +115,10 @@ JAC(8, 5) = - ((-n) * Is/ar * e^(-n*(x1-x5)) + n * Is * e^(-n*(x2-x5))) - ((-n) 
 JAC(8, 6) = 0
 JAC(8, 7) = 0
 JAC(8, 8) = 1 
+
+solve start
+solve end, use time = 0.026ms
+iters: 1    tol: 0
+Xs:
+    0.7103     0.6725         10     0.7103        1.5         10    -0.0046    -0.0021 
+    0.7103     0.6726         10     0.7103        1.5         10  -0.004645  -0.002081 

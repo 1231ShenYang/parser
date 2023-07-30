@@ -256,8 +256,10 @@ CMakeFiles/parser.dir/src/parser.cpp.o
  /usr/include/c++/11/tr1/poly_hermite.tcc
  /usr/include/c++/11/tr1/poly_laguerre.tcc
  /usr/include/c++/11/tr1/riemann_zeta.tcc
- /usr/local/include/eigen3/Eigen/Eigen
- /usr/local/include/eigen3/Eigen/Dense
+ /usr/include/x86_64-linux-gnu/sys/time.h
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
+ /usr/local/include/eigen3/Eigen/Sparse
+ /usr/local/include/eigen3/Eigen/SparseCore
  /usr/local/include/eigen3/Eigen/Core
  /usr/local/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h
  /usr/local/include/eigen3/Eigen/src/Core/util/Macros.h
@@ -270,7 +272,6 @@ CMakeFiles/parser.dir/src/parser.cpp.o
  /usr/include/c++/11/sstream
  /usr/include/c++/11/bits/sstream.tcc
  /usr/local/include/eigen3/Eigen/src/Core/util/MKL_support.h
- /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h
  /usr/include/c++/11/cstddef
  /usr/include/c++/11/cassert
  /usr/include/assert.h
@@ -438,69 +439,6 @@ CMakeFiles/parser.dir/src/parser.cpp.o
  /usr/local/include/eigen3/Eigen/src/Core/StlIterators.h
  /usr/local/include/eigen3/Eigen/src/Core/GlobalFunctions.h
  /usr/local/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h
- /usr/local/include/eigen3/Eigen/LU
- /usr/local/include/eigen3/Eigen/src/misc/Kernel.h
- /usr/local/include/eigen3/Eigen/src/misc/Image.h
- /usr/local/include/eigen3/Eigen/src/LU/FullPivLU.h
- /usr/local/include/eigen3/Eigen/src/LU/PartialPivLU.h
- /usr/local/include/eigen3/Eigen/src/LU/Determinant.h
- /usr/local/include/eigen3/Eigen/src/LU/InverseImpl.h
- /usr/local/include/eigen3/Eigen/src/LU/arch/InverseSize4.h
- /usr/local/include/eigen3/Eigen/Cholesky
- /usr/local/include/eigen3/Eigen/Jacobi
- /usr/local/include/eigen3/Eigen/src/Jacobi/Jacobi.h
- /usr/local/include/eigen3/Eigen/src/Cholesky/LLT.h
- /usr/local/include/eigen3/Eigen/src/Cholesky/LDLT.h
- /usr/local/include/eigen3/Eigen/QR
- /usr/local/include/eigen3/Eigen/Householder
- /usr/local/include/eigen3/Eigen/src/Householder/Householder.h
- /usr/local/include/eigen3/Eigen/src/Householder/HouseholderSequence.h
- /usr/local/include/eigen3/Eigen/src/Householder/BlockHouseholder.h
- /usr/local/include/eigen3/Eigen/src/QR/HouseholderQR.h
- /usr/local/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h
- /usr/local/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h
- /usr/local/include/eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h
- /usr/local/include/eigen3/Eigen/SVD
- /usr/local/include/eigen3/Eigen/src/misc/RealSvd2x2.h
- /usr/local/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h
- /usr/local/include/eigen3/Eigen/src/SVD/SVDBase.h
- /usr/local/include/eigen3/Eigen/src/SVD/JacobiSVD.h
- /usr/local/include/eigen3/Eigen/src/SVD/BDCSVD.h
- /usr/local/include/eigen3/Eigen/Geometry
- /usr/local/include/eigen3/Eigen/src/Geometry/OrthoMethods.h
- /usr/local/include/eigen3/Eigen/src/Geometry/EulerAngles.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Homogeneous.h
- /usr/local/include/eigen3/Eigen/src/Geometry/RotationBase.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Rotation2D.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Quaternion.h
- /usr/local/include/eigen3/Eigen/src/Geometry/AngleAxis.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Transform.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Translation.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Scaling.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Hyperplane.h
- /usr/local/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h
- /usr/local/include/eigen3/Eigen/src/Geometry/AlignedBox.h
- /usr/local/include/eigen3/Eigen/src/Geometry/Umeyama.h
- /usr/local/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h
- /usr/local/include/eigen3/Eigen/Eigenvalues
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h
- /usr/local/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
- /usr/local/include/eigen3/Eigen/Sparse
- /usr/local/include/eigen3/Eigen/SparseCore
  /usr/include/c++/11/map
  /usr/include/c++/11/bits/stl_tree.h
  /usr/include/c++/11/bits/stl_map.h

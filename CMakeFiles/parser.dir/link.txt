@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/parser.dir/src/parser.cpp.o -o parser 
+/usr/bin/c++  -fopenmp CMakeFiles/parser.dir/src/parser.cpp.o -o parser 

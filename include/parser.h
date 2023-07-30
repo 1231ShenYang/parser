@@ -3,12 +3,15 @@
 #include <fstream>
 #include <unordered_map>
 #include <vector>
+#include <iomanip>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-#include <eigen3/Eigen/Eigen>
+#include <sys/time.h>
+#include <omp.h>
+#include <eigen3/Eigen/Sparse>
 using namespace std;
 
 const double K = 1.3806503E-23;
@@ -22,8 +25,9 @@ char TranTypeName[][5] = {"NPN", "PNP"};
 enum TranType { NPN, PNP }; //三极管类型
 enum EquaType{ Nodal, Modified };
 
-unsigned *Counts[CompTypeCount], nodeCount=0, modelCount=0, componentCount=0;
-double *nvalue = NULL;
+unsigned *Counts[CompTypeCount], nodeCount=0, modelCount=0, componentCount=0, maxit = 500;
+double *nvalue = NULL, tol = 1e-3;
+struct timeval time1, time2;
 
 struct Model;
 struct Node;
@@ -33,8 +37,12 @@ Model *models = NULL;
 Component *components = NULL;
 Node *nodes = NULL;
 
-Eigen::SparseMatrix<double> JX; // J(X)
-Eigen::VectorXd X, FX; // X F(X)
+Eigen::SparseMatrix<double, Eigen::ColMajor> Jx, invJx, I; // J(X)
+Eigen::VectorXd X, Fx; // X F(X)
+Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> luSolver;
+
+vector<Eigen::Triplet<double>> SpVec;
+vector<Eigen::VectorXd> Xs;
 
 typedef struct Model
 {
@@ -55,8 +63,8 @@ typedef struct Model
     bool getNodalIeFunc(char *str, unsigned compNum);
     bool getJacobiIcFunc(char *str, unsigned compNum, unsigned nodeNum);
     bool getJacobiIeFunc(char *str, unsigned compNum, unsigned nodeNum);
-    double getJacobiIe(unsigned compNum);
-    double getJacobiIc(unsigned compNum);
+    double getJacobiIe(unsigned compNum, unsigned nodeNum);
+    double getJacobiIc(unsigned compNum, unsigned nodeNum);
     double getNodalIe(unsigned compNum);
     double getNodalIc(unsigned compNum);
 }Model;
@@ -108,6 +116,8 @@ typedef struct Component
                 break;
         }
     }
+    double getNodalValue(unsigned conNum, unsigned nodeNum);
+    double getJacobiValue(unsigned conNum, unsigned nodeNum1, unsigned nodeNum2);
 }Component;
 typedef struct Node
 {
@@ -248,10 +258,82 @@ typedef struct Node
                         strcpy(str, "");
                     }
                 }
+                SpVec.push_back(Eigen::Triplet<double>(nodeNum - 1, a - 1, 1.0));
                 outFile << endl;
             }
             else outFile << 0 << endl;
         }
+    }
+    double getNodalValue()
+    {
+        double val = 0.0;
+        bool flag = false;
+        if(type == Nodal)
+        {
+            for(unsigned b = 0; b < compLinkCnt; ++b)
+            {
+                if(components[comp[b]].type == VSource && nodes[components[comp[b]].con[0]].nodeNum == nodeNum)
+                {
+                    val = components[comp[b]].getNodalValue(con[b], nodeNum);
+                    flag = true;
+                    break;
+                }
+            }
+            if(!flag)
+            {
+                for(unsigned b = 0; b < compLinkCnt; ++b) val += components[comp[b]].getNodalValue(con[b], nodeNum);
+            }
+        }
+        else
+        {
+            unsigned temp1, temp2, b;
+            val = value;
+            temp2 = nodeNum - (nodeCount - Counts[VSource][0] - 1);
+            temp1 = components[Counts[VSource][temp2]].con[0];
+            for(b = 0; b < nodes[temp1].compLinkCnt; ++b)
+            {
+                if(components[nodes[temp1].comp[b]].type != VSource)
+                    val += components[nodes[temp1].comp[b]].getNodalValue(nodes[temp1].con[b], temp1);
+            }
+        }
+        return val;
+    }
+    double getJacobiValue(unsigned nodeNum2)
+    {
+        bool flag1;
+        double val = 0.0;
+        if(type == Nodal)
+        {       
+            flag1 = false;
+            for(unsigned b = 0; b < compLinkCnt; ++b)
+            {
+                if(components[comp[b]].type == VSource && nodes[components[comp[b]].con[0]].nodeNum == nodeNum)
+                {
+                    val = components[comp[b]].getJacobiValue(con[b], nodeNum, nodeNum2);
+                    flag1 = true;
+                    break;
+                }
+            }
+            if(!flag1)
+            {
+                for(unsigned b = 0; b < compLinkCnt; ++b)
+                    val += components[comp[b]].getJacobiValue(con[b], nodeNum, nodeNum2);
+            }
+        }
+        else
+        {
+            flag1 = false;
+            unsigned temp1, temp2, b;
+            temp2 = nodeNum - (nodeCount - Counts[VSource][0] - 1);
+            temp1 = components[Counts[VSource][temp2]].con[0];
+            if(nodeNum == nodeNum2) val += 1;
+            for(b = 0; b < nodes[temp1].compLinkCnt; ++b)
+            {
+                if(components[nodes[temp1].comp[b]].type != VSource)
+                    val += components[nodes[temp1].comp[b]].getJacobiValue(nodes[temp1].con[b], temp1, nodeNum2);
+            }
+        }
+        return val;
     }
 }Node;
 
@@ -260,9 +342,9 @@ bool Model::getNodalIcFunc(char *str, unsigned compNum)
     if(type = NPN)
         sprintf(str, "- Is/ar * (e^(-n*(x%d-x%d)) - 1) + Is * (e^(-n*(x%d-x%d)) - 1)"
             , components[compNum].con[0], components[compNum].con[1], components[compNum].con[2], components[compNum].con[1]);
-    else if(type == PNP)
-        sprintf(str, "Is/ar * (e^(n*(x%d-x%d)) - 1) - Is * (e^(n*(x%d-x%d)) - 1)"
-            , components[compNum].con[0], components[compNum].con[1], components[compNum].con[2], components[compNum].con[1]);
+    // else if(type == PNP)
+    //     sprintf(str, "Is/ar * (e^(n*(x%d-x%d)) - 1) - Is * (e^(n*(x%d-x%d)) - 1)"
+    //         , components[compNum].con[0], components[compNum].con[1], components[compNum].con[2], components[compNum].con[1]);
     return true;
 }
 bool Model::getNodalIeFunc(char *str, unsigned compNum)
@@ -270,9 +352,9 @@ bool Model::getNodalIeFunc(char *str, unsigned compNum)
     if(type == NPN)
         sprintf(str, "- Is/af * (e^(-n*(x%d-x%d)) - 1) + Is * (e^(-n*(x%d-x%d)) - 1)"
             , components[compNum].con[2], components[compNum].con[1], components[compNum].con[0], components[compNum].con[1]);
-    else if(type == PNP)
-        sprintf(str, "Is/af * (e^(n*(x%d-x%d)) - 1) - Is * (e^(n*(x%d-x%d)) - 1)"
-            , components[compNum].con[2], components[compNum].con[1], components[compNum].con[0], components[compNum].con[1]);
+    // else if(type == PNP)
+    //     sprintf(str, "Is/af * (e^(n*(x%d-x%d)) - 1) - Is * (e^(n*(x%d-x%d)) - 1)"
+    //         , components[compNum].con[2], components[compNum].con[1], components[compNum].con[0], components[compNum].con[1]);
     return true;
 }
 bool Model::getJacobiIcFunc(char *str, unsigned compNum, unsigned nodeNum)
@@ -288,17 +370,17 @@ bool Model::getJacobiIcFunc(char *str, unsigned compNum, unsigned nodeNum)
             sprintf(str, "(-n) * Is * e^(-n*(x%d-x%d))", components[compNum].con[2], components[compNum].con[1]);
         else strcpy(str, "0");
     }
-    else if(type == PNP)
-    {
-        if(nodeNum == components[compNum].con[0])
-            sprintf(str, "n * Is/ar * e^(n*(x%d-x%d))", components[compNum].con[0], components[compNum].con[1]);
-        else if(nodeNum == components[compNum].con[1])
-            sprintf(str, "((-n) * Is/ar * e^(n*(x%d-x%d)) + n * Is * e^(n*(x%d-x%d)))"
-                , components[compNum].con[0], components[compNum].con[1], components[compNum].con[2], components[compNum].con[1]);
-        else if(nodeNum == components[compNum].con[2])
-            sprintf(str, "n * Is * e^(n*(x%d-x%d))", components[compNum].con[2], components[compNum].con[1]);
-        else strcpy(str, "0");
-    }
+    // else if(type == PNP)
+    // {
+    //     if(nodeNum == components[compNum].con[0])
+    //         sprintf(str, "n * Is/ar * e^(n*(x%d-x%d))", components[compNum].con[0], components[compNum].con[1]);
+    //     else if(nodeNum == components[compNum].con[1])
+    //         sprintf(str, "((-n) * Is/ar * e^(n*(x%d-x%d)) + n * Is * e^(n*(x%d-x%d)))"
+    //             , components[compNum].con[0], components[compNum].con[1], components[compNum].con[2], components[compNum].con[1]);
+    //     else if(nodeNum == components[compNum].con[2])
+    //         sprintf(str, "n * Is * e^(n*(x%d-x%d))", components[compNum].con[2], components[compNum].con[1]);
+    //     else strcpy(str, "0");
+    // }
     return true;
 }
 bool Model::getJacobiIeFunc(char *str, unsigned compNum, unsigned nodeNum)
@@ -329,44 +411,83 @@ bool Model::getJacobiIeFunc(char *str, unsigned compNum, unsigned nodeNum)
 }
 double Model::getNodalIc(unsigned compNum)
 {
-    double val;
+    double val = 0.0;
     if(type == NPN)
     {
         val = (- is * (br + 1)) / br * (exp((-n) * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value))- 1)
                  + is * (exp((-n) * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value)) - 1);
     }
-    else if(type == PNP)
-    {
-        val = (is * (br + 1)) / br * (exp(n * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value))- 1)
-                 - is * (exp(n * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value)) - 1);
-    }
+    // else if(type == PNP)
+    // {
+    //     val = (is * (br + 1)) / br * (exp(n * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value))- 1)
+    //              - is * (exp(n * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value)) - 1);
+    // }
     return val;
 }
 double Model::getNodalIe(unsigned compNum)
 {
-    double val;
+    double val = 0.0;
     if(type == NPN)
     {
         val = (- is * (bf + 1)) / bf * (exp((-n) * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value))- 1)
                  + is * (exp((-n) * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value)) - 1);
     }
+    // else if(type == PNP)
+    // {
+    //     val = (is * (bf + 1)) / bf * (exp(n * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value))- 1)
+    //              - is * (exp(n * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value)) - 1);
+    // }
+    return val;
+}
+double Model::getJacobiIc(unsigned compNum, unsigned nodeNum)
+{
+    double val = 0.0;
+    if(type == NPN)
+    {
+        if(nodeNum == components[compNum].con[0]) 
+            val = n * is * (br+1) / br * exp((-n) * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value));
+        else if(nodeNum == components[compNum].con[1])
+            val = ((-n) * is * (br+1) / br * exp((-n) * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value))
+                    + n * is * exp((-n) * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value)));
+        else if(nodeNum == components[compNum].con[2])
+            val = (-n) * is * exp((-n) * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value));
+    }
     else if(type == PNP)
     {
-        val = (is * (bf + 1)) / bf * (exp(n * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value))- 1)
-                 - is * (exp(n * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value)) - 1);
+        cout << "wait to finish" << endl;
+    }
+    // else if(type == PNP)
+    // {
+    //     if(nodeNum == components[compNum].con[0])
+    //         sprintf(str, "n * Is/ar * e^(n*(x%d-x%d))", components[compNum].con[0], components[compNum].con[1]);
+    //     else if(nodeNum == components[compNum].con[1])
+    //         sprintf(str, "((-n) * Is/ar * e^(n*(x%d-x%d)) + n * Is * e^(n*(x%d-x%d)))"
+    //             , components[compNum].con[0], components[compNum].con[1], components[compNum].con[2], components[compNum].con[1]);
+    //     else if(nodeNum == components[compNum].con[2])
+    //         sprintf(str, "n * Is * e^(n*(x%d-x%d))", components[compNum].con[2], components[compNum].con[1]);
+    //     else strcpy(str, "0");
+    // }
+    return val;
+}
+double Model::getJacobiIe(unsigned compNum, unsigned nodeNum)
+{
+    double val = 0.0;
+    if(type == NPN)
+    {
+        if(nodeNum == components[compNum].con[0])
+            val =  (-n) * is * exp((-n) * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value));
+        else if(nodeNum == components[compNum].con[1])
+            val = ((-n) * is * (bf+1) / bf * exp((-n) * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value))
+                     + n * is * exp((-n) * (nodes[components[compNum].con[0]].value - nodes[components[compNum].con[1]].value)));
+        else if(nodeNum == components[compNum].con[2])
+            val = n * is * (bf+1) / bf * exp((-n) * (nodes[components[compNum].con[2]].value - nodes[components[compNum].con[1]].value));
+    }
+    else if(type == PNP)
+    {
+        cout << "wait to finish!!!" << endl;
     }
     return val;
 }
-// double Model::getJacobiIc(unsigned compNum)
-// {
-//     unsigned x1 = components[compNum].con[1], x2 = components[compNum].con[2];
-//     return getfc(compNum) - is * (exp(nodes[x2].value - nodes[x1].value) - 1);
-// }
-// double Model::getJacobiIe(unsigned compNum)
-// {
-//     unsigned x1 = components[compNum].con[0], x2 = components[compNum].con[1];
-//     return getfe(compNum) - is * (exp(nodes[x1].value - nodes[x2].value) - 1);
-// }
 
 bool Component::getNodalFunc(char *str, unsigned conNum, unsigned nodeNum, unsigned *num, unsigned *cnt)
 {
@@ -446,7 +567,6 @@ bool Component::getNodalFunc(char *str, unsigned conNum, unsigned nodeNum, unsig
 bool Component::getJacobiFunc(char *str, unsigned conNum, unsigned nodeNum1, unsigned nodeNum2)
 {
     bool flag = false;
-    unsigned temp1, temp2, temp3;
     switch(type)
     {
         case BJT:
@@ -504,6 +624,52 @@ bool Component::getJacobiFunc(char *str, unsigned conNum, unsigned nodeNum1, uns
     }
     return flag;
 }
+double Component::getNodalValue(unsigned conNum, unsigned nodeNum)
+{
+    double val = 0.0;
+    switch(type)
+    {
+        case BJT:
+            if(conNum == 0) val = models[model].getNodalIc(Counts[BJT][compNum]);
+            else if(conNum == 1) val = - models[model].getNodalIc(Counts[BJT][compNum]) - models[model].getNodalIe(Counts[BJT][compNum]);
+            else if(conNum == 2) val = models[model].getNodalIe(Counts[BJT][compNum]);
+            break;
+        case Resistor:
+            if(con[1] == 0) val = nodes[nodeNum].value / value;
+            else if(con[0] == nodeNum) val = (nodes[nodeNum].value - nodes[con[1]].value) / value;
+            else val = (nodes[nodeNum].value - nodes[con[0]].value) / value;
+            break;
+        case VSource:
+            if(con[1] == 0) val = nodes[nodeNum].value - value;
+            else if(con[0] == nodeNum) val = nodes[nodeNum].value - nodes[con[1]].value - value;
+            else val = - nodes[nodeCount - Counts[VSource][0] - 1 + compNum].value;
+            break;
+    }
+    return val;
+}
+double Component::getJacobiValue(unsigned conNum, unsigned nodeNum1, unsigned nodeNum2)
+{
+    double val = 0.0;
+    switch(type)
+    {
+        case BJT:
+            if(conNum == 0) val = models[model].getJacobiIc(Counts[BJT][compNum], nodeNum2);
+            else if(conNum == 1) val = - models[model].getJacobiIc(Counts[BJT][compNum], nodeNum2)
+                                         - models[model].getJacobiIe(Counts[BJT][compNum], nodeNum2);
+            else if(conNum == 2) val = models[model].getJacobiIe(Counts[BJT][compNum], nodeNum2);
+            break;
+        case Resistor:
+            if(nodeNum1 == nodeNum2) val = 1.0 / value;
+            else if(nodeNum2 == con[0] || nodeNum2 == con[1]) val = -1.0 / value;
+            break;
+        case VSource:
+            if(con[0] == nodeNum1 && nodeNum1 == nodeNum2) val = 1.0;
+            else if((con[1] == nodeNum2 && nodeNum1 != nodeNum2) || nodeCount - Counts[VSource][0] - 1 + compNum == nodeNum2)
+                val = -1.0;
+            break;
+    }
+    return val;
+}
 
 void Init1()
 {
@@ -522,6 +688,10 @@ void Destroy()
     for(unsigned a = 0; a < CompTypeCount; ++a) free(Counts[a]);
 }
 
+double GetTime(struct timeval &t1, struct timeval &t2)
+{
+    return (t2.tv_sec - t1.tv_sec) * 1000 + (t2.tv_usec - t1.tv_usec) / 1000.0;
+}
 double stripString( char *stringIn )
 {
     char buf[BufLength], buf2[BufLength];
@@ -567,3 +737,70 @@ void printNodes()
     return;
 }
 
+
+void updateX() // 从X保存到节点
+{
+    for(unsigned a = 1; a < nodeCount; ++a) nodes[a].value = X[a-1];
+}
+void updateFx()
+{
+   for(unsigned a = 1; a < nodeCount; ++a) Fx[a - 1] = nodes[a].getNodalValue();
+}
+void updateJx()
+{
+    for(unsigned a = 0; a < SpVec.size(); ++a)
+        Jx.coeffRef(SpVec[a].row(), SpVec[a].col()) = nodes[SpVec[a].row() + 1].getJacobiValue(SpVec[a].col() + 1);
+}
+
+void solveInit()
+{
+    I.reserve(nodeCount - 1);
+    I.resize(nodeCount - 1, nodeCount - 1);
+    for(unsigned a = 0; a < nodeCount - 1; ++a) I.coeffRef(a, a) = 1.0;
+
+    Jx.reserve(SpVec.size());
+    Jx.resize(nodeCount - 1, nodeCount - 1);
+    Jx.setFromTriplets(SpVec.begin(), SpVec.end());
+    invJx.resize(nodeCount - 1, nodeCount - 1);
+
+    X.resize(nodeCount - 1);
+    for(unsigned a = 1; a < nodeCount; ++a) X[a - 1] = nodes[a].value;
+    Xs.push_back(X);
+    Fx.resize(nodeCount - 1);
+}
+void solve(ofstream &outFile)
+{
+    outFile << endl << "solve start" << endl;
+    gettimeofday(&time1, NULL);
+    solveInit();
+    unsigned iters = 0, utemp1;
+    double dtemp1 = tol + 1;
+    while(dtemp1 > tol && iters < maxit)
+    {
+        updateFx();
+        updateJx();
+        
+        if(!Jx.isCompressed()) Jx.makeCompressed();
+        luSolver.analyzePattern(Jx);
+        luSolver.factorize(Jx);
+        invJx = luSolver.solve(I);
+        
+        X = X - invJx * Fx;
+        
+        updateX();
+        Xs.push_back(X);
+        ++iters;
+        dtemp1 = (X - Xs[Xs.size()-1]).norm();
+        if(iters == 2) break;
+    }
+    gettimeofday(&time2, NULL);
+    outFile << "solve end, use time = " << GetTime(time1, time2) << "ms" << endl;
+    outFile << "iters: " << iters << "    tol: " << dtemp1 << endl;
+    outFile << "Xs:" << endl;
+    for(unsigned a = 0; a < Xs.size(); ++a)
+    {
+        for(unsigned b = 0; b < nodeCount - 1; ++b)
+            outFile << setiosflags(ios::right) << setw(10) << setprecision(4) << Xs[a][b] << ' ';
+        outFile << endl;
+    }
+}
