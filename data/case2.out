@@ -1,4 +1,4 @@
-Init models components and nodes finished, use time = 0.058ms
+Init models components and nodes finished, use time = 0.051ms
 Title: * Schmitt Trigger circuit no. 2
 datum = 6          lastnode = 6
 
@@ -105,10 +105,10 @@ JAC(7, 4) = 0
 JAC(7, 5) = - 1/r2
 JAC(7, 6) = 1/rc1 + 1/rc2 + 1/r2
 JAC(7, 7) = 1 
-output models components and nodes finished, use time = 0.186ms
+output models components and nodes finished, use time = 0.181ms
 
 solve start
-solve end, use time = 0.034ms
+solve end, use time = 0.036ms
 iters: 2    tol: 0.000225723
 Xs:
     0.6679     0.7396         10     0.7323      1.494         10  -0.007875 

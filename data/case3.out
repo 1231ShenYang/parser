@@ -1,4 +1,4 @@
-Init models components and nodes finished, use time = 0.069ms
+Init models components and nodes finished, use time = 0.08ms
 Title: * Chua Circuit
 datum = 1          lastnode = 14
 
@@ -438,10 +438,10 @@ JAC(18, 15) = 0
 JAC(18, 16) = 0
 JAC(18, 17) = 0
 JAC(18, 18) = 1 
-output models components and nodes finished, use time = 3.264ms
+output models components and nodes finished, use time = 3.628ms
 
 solve start
-solve end, use time = 0.068ms
+solve end, use time = 0.069ms
 iters: 2    tol: 0.000416951
 Xs:
      1.775     -8.225     -1.104      1.464      1.464     0.3688     0.3688      1.388      1.388      10.46     0.8956      10.69         12         12  -0.003019  -0.002961  -0.000712  0.0003266 
