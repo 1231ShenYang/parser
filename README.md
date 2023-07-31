@@ -2,9 +2,8 @@
 ## run
 ```
 将网表放在../parser/data/中
-bash ./run.sh 网表名
-如: bash ./run.sh case1
-最后输出在../parser/data/case1.out中
+bash ./run.sh
+如: bash ./run.sh
 ```
 ## 2023.7.11
 ```
@@ -211,4 +210,8 @@ Functions:
 F(1) = x1 - VCC
 F(2) = (x2 - x1)/R1
 F(3) = x3  + (x1 - x2)/R1
+```
+## 2023.7.30
+```
+添加了Jacobi函数的输出和N-R迭代法
 ```

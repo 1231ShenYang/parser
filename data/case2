@@ -1,5 +1,5 @@
 * Schmitt Trigger circuit no. 2
-.model nbjt NPN IS=1e-16 BF=100 BR=1
+.model nbjt NPN IS=1e-16 BF=100 BR=1 N=38.781
 q1 2 5 1 nbjt
 q2 3 4 1 nbjt
 rc1 6 2 1.5e3
@@ -10,7 +10,5 @@ r2 5 6 5e3
 r3 5 0 1.25e3
 r4 4 0 1e6
 vcc 6 0 10
-.nodeset v(1)=0 v(2)=0 v(3)=5
-* .nodeset v(1)=0 v(2)=5 v(3)=5
-* .nodeset v(1)=5 v(2)=0 v(3)=5
+.nodeset v(1)=0.6679 v(2)=0.7396 v(3)=10.0000 v(4)=0.7323 v(5)=1.4938 v(6)=10.0000 v(7)=-0.007875
 .op

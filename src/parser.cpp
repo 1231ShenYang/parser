@@ -19,7 +19,7 @@ int main( int argc, char *argv[] )
         cerr << "./parser infile outfile" << endl;
         exit(1);
     }
-
+gettimeofday(&time1, NULL);
     // 读取输入和输出的文件位置
     strcpy(inName, argv[1]);
     strcpy(outName, argv[2]);
@@ -227,6 +227,9 @@ int main( int argc, char *argv[] )
             ++nodeTempNum[intBuf1];
         }
     }
+gettimeofday(&time2, NULL);
+outFile << "Init models components and nodes finished, use time = " << GetTime(time1, time2) << "ms" << endl;
+gettimeofday(&time1, NULL);
 //  Loop to find the datum
     if( datum == NA )
     {
@@ -260,6 +263,8 @@ int main( int argc, char *argv[] )
     for(unsigned a = 1; a < nodeCount; ++a) nodes[a].printNodalFunc(outFile);
     outFile << endl << "Jacobian:" << endl;
     for(unsigned a = 1; a < nodeCount; ++a) nodes[a].printJacobiFunc(outFile);
+gettimeofday(&time2, NULL);
+outFile << "output models components and nodes finished, use time = " << GetTime(time1, time2) << "ms" << endl;
     solve(outFile);
     outFile.close();
     Destroy();

@@ -738,7 +738,7 @@ void printNodes()
 }
 
 
-void updateX() // 从X保存到节点
+void updateNodeX()
 {
     for(unsigned a = 1; a < nodeCount; ++a) nodes[a].value = X[a-1];
 }
@@ -751,7 +751,10 @@ void updateJx()
     for(unsigned a = 0; a < SpVec.size(); ++a)
         Jx.coeffRef(SpVec[a].row(), SpVec[a].col()) = nodes[SpVec[a].row() + 1].getJacobiValue(SpVec[a].col() + 1);
 }
-
+void updateX()
+{
+    for(unsigned a = 1; a < nodeCount; ++a) X[a - 1] = nodes[a].value;
+}
 void solveInit()
 {
     I.reserve(nodeCount - 1);
@@ -764,7 +767,7 @@ void solveInit()
     invJx.resize(nodeCount - 1, nodeCount - 1);
 
     X.resize(nodeCount - 1);
-    for(unsigned a = 1; a < nodeCount; ++a) X[a - 1] = nodes[a].value;
+    updateX();
     Xs.push_back(X);
     Fx.resize(nodeCount - 1);
 }
@@ -777,21 +780,26 @@ void solve(ofstream &outFile)
     double dtemp1 = tol + 1;
     while(dtemp1 > tol && iters < maxit)
     {
-        updateFx();
-        updateJx();
+                    //cout << "X:" << endl << X << endl;
+        updateFx(); //cout << "FX:" << endl << Fx << endl;
+        updateJx(); //cout << "JX:" << endl << Jx << endl;
         
         if(!Jx.isCompressed()) Jx.makeCompressed();
         luSolver.analyzePattern(Jx);
         luSolver.factorize(Jx);
-        invJx = luSolver.solve(I);
+        if(luSolver.info() != 0)
+        {
+            outFile << "can't to solve" << endl;
+            break;
+        }
+        invJx = luSolver.solve(I); //cout << "invJX:" << endl <<  invJx << endl;
         
         X = X - invJx * Fx;
         
-        updateX();
-        Xs.push_back(X);
+        updateNodeX();
         ++iters;
         dtemp1 = (X - Xs[Xs.size()-1]).norm();
-        if(iters == 2) break;
+        Xs.push_back(X);
     }
     gettimeofday(&time2, NULL);
     outFile << "solve end, use time = " << GetTime(time1, time2) << "ms" << endl;
